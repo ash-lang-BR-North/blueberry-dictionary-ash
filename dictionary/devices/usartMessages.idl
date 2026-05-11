@@ -71,7 +71,8 @@ module ::Blueberry::Devices {
     	LSB = 1,
     };
     
-    typedef sequence <uint16> UsartFrameData; // complete USART frame, start + data + parity + stop
+    // allow at most 256 frames per blueberry message
+    typedef sequence <uint8, 256> UsartFrameData; // complete USART frame, start + data + parity + stop
     
     @message_key(0x1122)
     @topic("blueberry/devices/{device_type}/{nid}/usart-config")
@@ -85,14 +86,16 @@ module ::Blueberry::Devices {
 		TargetUsartSB sb;
 	};
 	
-	// Message to send USART frame for transmission, with frame IDs to validate reception of all frames
+	// Message to send USART frame for transmission, with frame IDs to validate reception by pogo brain of all frames
+	// Packet size of 266 bytes, within UDP max of 206 bytes, overhead of 10 bytes for 3.76% overhead
     @message_key(0x330c)
     @topic("blueberry/devices/{device_type}/{nid}/usart-stream")
     message UsartFrame {
         uint8 streamID;
         uint32 lastFrameID;
         uint32 currentFrameID;
-        UsartFrameData streamData; // len 0 on receiver reply
+        uint8 numFrames;
+        UsartFrameData streamData;
     };
 		
 };
